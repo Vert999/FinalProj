@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/backItem"
+        android:icon="@drawable/back_foreground"
+        android:title="backItem"
+        app:showAsAction="ifRoom"
+        />
+    <item android:id="@+id/menuItem"
+        android:title="Options"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/historyItem"
+        android:title="History"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/modeItem"
+        android:title="Mode"
+        app:showAsAction="never"/>
+</menu>
