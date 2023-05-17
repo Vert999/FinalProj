@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,31 +31,23 @@ import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
     CardView trending;
-    CardView music;
     FragmentTransaction xact;
     FragmentManager fragMgr;
+    SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         trending = findViewById(R.id.card_view);
-        music = findViewById(R.id.music_card);
         SharedPreferences sharedPref = getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
+        editor = sharedPref.edit();
         editor.putString("text", "value");
         editor.commit();
-        fragMgr = getFragmentManager();
-        xact = fragMgr.beginTransaction();
         trending.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MainActivity.this, TrendingActivity.class));
-            }
-        });
-        music.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, MusicActivity.class));
+
             }
         });
 
@@ -64,48 +57,34 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.tool_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.searchItem);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                editor.putString("search", s);
+                editor.commit();
+                startActivity(new Intent(MainActivity.this, SearchActivity.class));
+                return false;
+            }// This Searchbar on the menu will send you to the SearchActivity with the search query following in the shared pref's
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
         return true;
     }
 
+
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
+    public boolean onOptionsItemSelected(@NonNull MenuItem menu) {
+        switch (menu.getItemId()) {
             case R.id.backItem:
-                Toast.makeText(this, "Already at Home", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.menuItem:
-                Toast.makeText(this, "Options ready", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.historyItem:
-                Toast.makeText(this, "History ready", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.modeItem:
-                Toast.makeText(this, "Dark Mode ready", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Already at Home", Toast.LENGTH_SHORT).show(); // you're already home so whats the need to go back
                 return true;
         }
-        return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(menu);
     }
 
-    public void getAPI()
-    {
-        RequestQueue requestQueue;
-        requestQueue = Volley.newRequestQueue(this);
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET,
-                "https://www.googleapis.com/youtube/v3/videos?id=7lCDEYXw3mM&key=AIzaSyDNw6r-xqZOS-WolHQqrP0PGSoYDBcmg_0&part=snippet,contentDetails,statistics,status", null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                ;
-//                    JSONObject STdata = response.optJSONObject("");
-                Log.d("myapp", " The response is " + response);
-
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("myapp", "Something went wrong");
-            }
-        });
-        requestQueue.add(jsonObjectRequest);
-    }
 }

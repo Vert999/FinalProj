@@ -16,12 +16,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -76,7 +78,8 @@ public class TrendingActivity extends AppCompatActivity {
     ArrayList<ImageView> thumbnails = new ArrayList<>();
     ArrayList<Integer> draws = new ArrayList<>();
     ArrayList<CardView> cards = new ArrayList<>();
-
+    // I set up these ArrayLists to more efficiently go through the different view's
+    SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,9 +87,9 @@ public class TrendingActivity extends AppCompatActivity {
         getItems();
         getAPI();
         SharedPreferences sharedPref = getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
+        editor = sharedPref.edit();
 
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < 8; j++) // This sets up an onclick listener for each card I have, with as minimal as code as I could fit
         {
             sharedVid = j+1;
             cards.get(j).setOnClickListener(new View.OnClickListener() {
@@ -95,7 +98,7 @@ public class TrendingActivity extends AppCompatActivity {
                     editor.putString("API", API);
                     editor.commit();
                     editor.putInt("video", sharedVid);
-                    editor.commit();
+                    editor.commit(); // whenever you onto a card video it will send the api call and position in the items so it can be called in the mediaplayer
                     startActivity(new Intent(TrendingActivity.this, MediaActivity.class));
                 }
             });
@@ -104,34 +107,43 @@ public class TrendingActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.tool_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.searchItem);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                editor.putString("search", s);
+                editor.commit();
+                startActivity(new Intent(TrendingActivity.this, SearchActivity.class));
+                return false;
+                // This Searchbar on the menu will send you to the SearchActivity with the search query following in the shared pref's
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
         return true;
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.backItem:
                 startActivity(new Intent(TrendingActivity.this, MainActivity.class));
                 return true;
-            case R.id.menuItem:
-                Toast.makeText(this, "Options ready", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.historyItem:
-                Toast.makeText(this, "History ready", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.modeItem:
-                Toast.makeText(this, "Dark Mode ready", Toast.LENGTH_SHORT).show();
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
-    public void getAPI()
+    public void getAPI() // this lovely API call loops through the items in the api call and parses them out, then distributes the title and url (through the drawablefromurl method) into their respective Views
     {
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(this);
         API = "https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&regionCode=US&key=AIzaSyDNw6r-xqZOS-WolHQqrP0PGSoYDBcmg_0&maxResults=9";
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET,
-                "https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&regionCode=US&key=AIzaSyDNw6r-xqZOS-WolHQqrP0PGSoYDBcmg_0&maxResults=9", null, new Response.Listener<JSONObject>() {
+                API, null, new Response.Listener<JSONObject>() {
             @SuppressLint("StaticFieldLeak")
             @Override
             public void onResponse(JSONObject response) {
@@ -173,7 +185,7 @@ public class TrendingActivity extends AppCompatActivity {
         });
         requestQueue.add(jsonObjectRequest);
     }
-    public void getItems()
+    public void getItems() // just a quick way to grab all the necessary views without clogging up the oncreate method
     {
         trending_one = findViewById(R.id.trending_card1);
         trending_two = findViewById(R.id.trending_card2);
@@ -224,10 +236,11 @@ public class TrendingActivity extends AppCompatActivity {
         cards.add(trending_seven);
         cards.add(trending_eight);
     }
+    @SuppressLint("StaticFieldLeak")
     public void drawableFromUrl(String url, ImageView img) throws java.net.MalformedURLException, java.io.IOException {
 
         new AsyncTask<String, Integer, Drawable>(){
-
+            // This method uses the URL gathered from the API call and finds it over the internet, and turns it into a temporary Drawable to use
             @Override
             protected Drawable doInBackground(String... strings) {
                 Bitmap bmp = null;

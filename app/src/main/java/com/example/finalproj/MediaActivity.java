@@ -11,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.WebView;
 import android.widget.MediaController;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -56,12 +57,13 @@ public class MediaActivity extends AppCompatActivity {
     Uri uri;
     String id;
     String api;
+    SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media);
         SharedPreferences sharedPref = getSharedPreferences("preferences", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
+        editor = sharedPref.edit();
         video = findViewById(R.id.main_video);
         title = findViewById(R.id.titleView);
         MediaController mediaCont = new MediaController(this);
@@ -72,7 +74,7 @@ public class MediaActivity extends AppCompatActivity {
         vidnum = sharedPref.getInt("video", 1);
         getAPI();
     }
-    public void getAPI()
+    public void getAPI()// this lovely API call loops through the items in the api call and parses them out, then distributes the title and url (through the drawablefromurl method) into their respective Views
     {
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(this);
@@ -110,6 +112,22 @@ public class MediaActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.tool_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.searchItem);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                editor.putString("search", s);
+                editor.commit();
+                startActivity(new Intent(MediaActivity.this, SearchActivity.class));
+                return false;
+            }// This Searchbar on the menu will send you to the SearchActivity with the search query following in the shared pref's
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
         return true;
     }
     @Override
@@ -117,15 +135,6 @@ public class MediaActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.backItem:
                 startActivity(new Intent(MediaActivity.this, MainActivity.class));
-                return true;
-            case R.id.menuItem:
-                Toast.makeText(this, "Options ready", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.historyItem:
-                Toast.makeText(this, "History ready", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.modeItem:
-                Toast.makeText(this, "Dark Mode ready", Toast.LENGTH_SHORT).show();
                 return true;
         }
         return super.onOptionsItemSelected(item);

@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MusicActivity"
+            android:name=".SearchActivity"
             android:exported="true"></activity>
         <activity
             android:name=".TrendingActivity"

@@ -6,15 +6,9 @@
         android:title="backItem"
         app:showAsAction="ifRoom"
         />
-    <item android:id="@+id/menuItem"
-        android:title="Options"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/historyItem"
-        android:title="History"
-        app:showAsAction="never"/>
-
-    <item android:id="@+id/modeItem"
-        android:title="Mode"
-        app:showAsAction="never"/>
+    <item android:id="@+id/searchItem"
+        android:icon="@drawable/searchable_foreground"
+        android:title="search"
+        app:showAsAction="always"
+        app:actionViewClass="android.widget.SearchView" />
 </menu>
